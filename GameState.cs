@@ -18,6 +18,8 @@ namespace Snake_Game
         public int Score { get; private set; }
         public bool GameOVer { get; private set; }
 
+        private readonly LinkedList<Direction> dirChanges = new LinkedList<Direction>();
+
         private readonly LinkedList<Position> snakePositions = new LinkedList<Position>();
 
         // this will be use to randomize the food spawn
@@ -106,9 +108,34 @@ namespace Snake_Game
 
         }
 
+        private Direction GetLastDirection()
+        {
+            if(dirChanges.Count == 0)
+            {
+                return Dir;
+            }
+            return dirChanges.Last.Value;
+        }
+
+        private bool CanChangeDirection(Direction newDir)
+        {
+            if (dirChanges.Count == 2)
+            {
+                return false;
+            }
+            Direction lastDir = GetLastDirection();
+            return newDir != lastDir && newDir != lastDir.Opposite();
+        }
+
         public void ChangeDirection(Direction dir)
         {
-            Dir = dir;
+            //if the direction change can be made
+            if(CanChangeDirection(dir))
+            {
+                dirChanges.AddLast(dir);
+            }
+
+            dirChanges.AddLast(dir);
 
         }
 
@@ -131,6 +158,13 @@ namespace Snake_Game
         //Moving Code what happens if 
         public void Move()
         {
+            //Check if there is direction change
+            if(dirChanges.Count>0)
+            {
+                Dir = dirChanges.First.Value;
+                dirChanges.RemoveFirst();
+            }
+
             Position newHeadPos = HeadPosition().Translate(Dir);
             GridValue hit = WillHit(newHeadPos);
 
